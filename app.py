@@ -49,18 +49,18 @@ with st.spinner('실시간 시세를 가져오는 중...'):
 # 3. 수익률 계산 로직
 # 데이터를 불러온 직후 형 변환 로직 추가
 df['평단가'] = pd.to_numeric(df['평단가'], errors='coerce')
-df['보유 수량'] = pd.to_numeric(df['보유 수량'], errors='coerce')
+df['보유수량'] = pd.to_numeric(df['보유수량'], errors='coerce')
 
 # 결측치(NaN)가 생길 경우를 대비해 0으로 채워줍니다 (선택 사항)
 df['평단가'] = df['평단가'].fillna(0)
-df['보유 수량'] = df['보유 수량'].fillna(0)
+df['보유수량'] = df['보유수량'].fillna(0)
 
 # 숫자형 변환 및 계산
 df['평단가'] = pd.to_numeric(df['평단가'], errors='coerce').fillna(0)
-df['보유 수량'] = pd.to_numeric(df['보유 수량'], errors='coerce').fillna(0)
+df['보유수량'] = pd.to_numeric(df['보유수량'], errors='coerce').fillna(0)
 
-df['평가금액'] = df['현재가'] * df['보유 수량']
-df['매수금액'] = df['평단가'] * df['보유 수량']
+df['평가금액'] = df['현재가'] * df['보유수량']
+df['매수금액'] = df['평단가'] * df['보유수량']
 df['수익금'] = df['평가금액'] - df['매수금액']
 df['수익률'] = (df['수익금'] / df['매수금액'] * 100).fillna(0)
 
