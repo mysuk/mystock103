@@ -2,6 +2,8 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import google.generativeai as genai
 import pandas as pd
+import yfinance as yf
+import pyupbit
 
 # 1. 환경 설정 및 세팅
 st.set_page_config(page_title="My Investment Terminal", layout="wide")
@@ -19,11 +21,31 @@ def load_data():
     # 시트 이름이 'Sheet1'인 경우 예시
     return conn.read()
 
+# 실시간 가격 가져오기 함수
+def get_current_price(ticker, category):
+    try:
+        if category == '주식':
+            # 주식 Ticker (예: 삼성전자는 005930.KS, 미국주식은 AAPL)
+            stock = yf.Ticker(ticker)
+            price = stock.history(period='1d')['Close'].iloc[-1]
+            return price
+        elif category == '가상화폐':
+            # 가상화폐 Ticker (예: KRW-BTC)
+            return pyupbit.get_current_price(ticker)
+    except Exception as e:
+        return 0
+        
 df = load_data()
+df.columns = df.columns.str.strip()
 
 # 디버깅용: 실제 불러온 컬럼명들을 화면에 출력해봅니다.
 st.write("불러온 컬럼 목록:", df.columns.tolist()) 
 
+# 데이터프레임에 실시간 현재가 적용
+with st.spinner('실시간 시세를 가져오는 중...'):
+    # 시트의 'Ticker'와 '구분'(주식/가상화폐) 컬럼을 활용
+    df['현재가'] = df.apply(lambda x: get_current_price(x['Ticker'], x['구분']), axis=1)
+    
 # 3. 수익률 계산 로직
 # 데이터를 불러온 직후 형 변환 로직 추가
 df['평단가'] = pd.to_numeric(df['평단가'], errors='coerce')
@@ -33,11 +55,14 @@ df['보유 수량'] = pd.to_numeric(df['보유 수량'], errors='coerce')
 df['평단가'] = df['평단가'].fillna(0)
 df['보유 수량'] = df['보유 수량'].fillna(0)
 
-# 시트에 '종목명', '평단가', '보유수량', '현재가', '구분(주식/코인)' 컬럼이 있다고 가정
-df['매수금액'] = df['평단가'] * df['보유 수량']
+# 숫자형 변환 및 계산
+df['평단가'] = pd.to_numeric(df['평단가'], errors='coerce').fillna(0)
+df['보유 수량'] = pd.to_numeric(df['보유 수량'], errors='coerce').fillna(0)
+
 df['평가금액'] = df['현재가'] * df['보유 수량']
+df['매수금액'] = df['평단가'] * df['보유 수량']
 df['수익금'] = df['평가금액'] - df['매수금액']
-df['수익률'] = (df['수익금'] / df['매수금액']) * 100
+df['수익률'] = (df['수익금'] / df['매수금액'] * 100).fillna(0)
 
 # 4. 화면 구성: 포트폴리오 요약
 st.subheader("✅ 보유 자산 현황")
