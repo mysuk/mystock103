@@ -20,7 +20,8 @@ try:
     # response = model.generate_content("test") 
 except Exception as e:
     st.error(f"모델 초기화 중 오류 발생: {e}")
-
+response = model.generate_content("안녕, 뭐 해?")
+st.write(response.text)
 # 2. 구글 시트 연결 (mystock 파일)
 conn = st.connection("gsheets", type=GSheetsConnection)
 
