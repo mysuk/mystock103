@@ -17,7 +17,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 @st.cache_data(ttl=600) # 10분마다 데이터 갱신
 def load_data():
     # 시트 이름이 'Sheet1'인 경우 예시
-    return conn.read(worksheet="Sheet1")
+    return conn.read()
 
 df = load_data()
 
