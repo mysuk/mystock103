@@ -20,6 +20,15 @@ try:
     # response = model.generate_content("test") 
 except Exception as e:
     st.error(f"모델 초기화 중 오류 발생: {e}")
+
+# 사용 가능한 모델 확인
+try:
+    models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+    st.write(f"📋 사용 가능한 모델: {models}")
+except Exception as e:
+    st.error(f"❌ 모델 조회 실패: {str(e)}")
+    st.stop()
+    
 response = model.generate_content("안녕, 뭐 해?")
 st.write(response.text)
 # 2. 구글 시트 연결 (mystock 파일)
