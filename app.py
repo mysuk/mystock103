@@ -11,7 +11,15 @@ st.title("📊 주식/가상화폐 수익률 & AI 대응 전략")
 
 # Gemini API 설정 (Streamlit Secrets에 저장 권장)
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('models/gemini-1.5-flash')
+
+try:
+    # 1. 모델명 앞에 'models/'를 붙여 경로를 명시합니다.
+    model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
+    
+    # 2. 모델이 정상적으로 생성되었는지 간단한 테스트를 진행합니다. (선택 사항)
+    # response = model.generate_content("test") 
+except Exception as e:
+    st.error(f"모델 초기화 중 오류 발생: {e}")
 
 # 2. 구글 시트 연결 (mystock 파일)
 conn = st.connection("gsheets", type=GSheetsConnection)
