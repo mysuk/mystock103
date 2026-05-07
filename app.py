@@ -55,7 +55,7 @@ df = load_data()
 df.columns = df.columns.str.strip()
 
 # 디버깅용: 실제 불러온 컬럼명들을 화면에 출력해봅니다.
-st.write("불러온 컬럼 목록:", df.columns.tolist()) 
+# st.write("불러온 컬럼 목록:", df.columns.tolist()) 
 
 # 데이터프레임에 실시간 현재가 적용
 with st.spinner('실시간 시세를 가져오는 중...'):
