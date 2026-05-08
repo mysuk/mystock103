@@ -2,5 +2,5 @@ streamlit
 st-gsheets-connection
 google-generativeai>=0.5.0  # 버전을 0.5.0 이상으로 명시
 pandas
-yfinance
+yfinance>=0.2.40  # 2026년 기준 최신 버전 확인 권장
 pyupbit
