@@ -51,20 +51,24 @@ def get_current_price(ticker, category):
             return pyupbit.get_current_price(ticker)
     except Exception as e:
         return 0
-        
-# 지수 정보를 가져오는 함수
+# 지수가져오기        
 def get_market_indices():
     indices = {"코스피": "^KS11", "코스닥": "^KQ11"}
     market_data = {}
     
     for name, ticker in indices.items():
         try:
+            # 1일치 데이터를 1분 단위로 가져와서 가장 최신 값을 씁니다.
             index_data = yf.Ticker(ticker)
-            # 오늘 데이터가 아직 안 쌓였을 경우를 대비해 최근 2일치 데이터 로드
-            hist = index_data.history(period="2d")
+            hist = index_data.history(period="1d", interval="1m") 
+            
+            if hist.empty:
+                # 오늘 장이 아직 안 열렸거나 데이터가 없으면 전일 종가를 가져옵니다.
+                hist = index_data.history(period="2d")
+            
             if not hist.empty:
                 current_val = hist['Close'].iloc[-1]
-                prev_val = hist['Close'].iloc[-2]
+                prev_val = hist['Close'].iloc[0] # 오늘 시초가 혹은 전일 종가
                 change = current_val - prev_val
                 change_percent = (change / prev_val) * 100
                 
@@ -72,9 +76,11 @@ def get_market_indices():
                 market_data[name] = f"{current_val:,.2f} ({status}, {change_percent:+.2f}%)"
             else:
                 market_data[name] = "데이터 확인 불가"
-        except Exception:
-            market_data[name] = "연결 오류"
+        except Exception as e:
+            # 에러 로그를 살짝 남겨두면 나중에 디버깅하기 좋습니다.
+            market_data[name] = f"연결 지연 (다시 시도)"
     return market_data
+    
 df = load_data()
 df.columns = df.columns.str.strip()
 
@@ -150,6 +156,7 @@ if st.button(f"{selected_stock} 분석 시작"):
 
     ### [2. 분석 요청 데이터 (직접 검색 및 추론 포함)]
     아래 항목들을 네가 알고 있는 최신 시장 데이터(최근 1달 기준)를 바탕으로 채워서 분석해줘.
+    미국주식의 경우 달러로 적용해줘.
 
     ###【시장 환경】
     - 현재 KOSPI 지수: {kospi_val}
@@ -175,17 +182,15 @@ if st.button(f"{selected_stock} 분석 시작"):
 
     ※ 모든 분석은 한국어로, 격조 있고 전문적인 투자 보고서 형식으로 출력해줘.
     """
-    # st.write(prompt)
-    with st.spinner(f'제미나이가 {selected_stock}의 실시간 시장 데이터를 분석 중입니다...'):
-        response = model.generate_content(prompt)
-        st.markdown(f"### 🚩 {selected_stock} AI 종합 분석 보고서")
-        st.write(response.text)
-        # --- 개발자용 비밀 확인 섹션 ---
-        st.divider()
-        with st.expander("🔍 개발자용: 전송된 프롬프트 확인"):
-            st.code(prompt, language='text')
-        # 분석 결과 출력 후 마지막에 배치
-        st.popover("Prompt Debug").code(prompt)
+    st.write(prompt)
+    # with st.spinner(f'제미나이가 {selected_stock}의 실시간 시장 데이터를 분석 중입니다...'):
+    #     response = model.generate_content(prompt)
+    #     st.markdown(f"### 🚩 {selected_stock} AI 종합 분석 보고서")
+    #     st.write(response.text)
+    #     # --- 개발자용 비밀 확인 섹션 ---
+    #     st.divider()
+    #     # 분석 결과 출력 후 마지막에 배치
+    #     st.popover("Prompt Debug").code(prompt)
     
     # with st.spinner('제미나이가 분석 중입니다...'):
     #     response = model.generate_content(prompt)
