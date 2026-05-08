@@ -111,8 +111,22 @@ df['수익금'] = df['평가금액'] - df['매수금액']
 df['수익률'] = (df['수익금'] / df['매수금액'] * 100).fillna(0)
 
 # 4. 화면 구성: 포트폴리오 요약
+# 4.1. 화면에 보여줄 컬럼 순서 정의 (Ticker 제외)
+display_columns = ['종목명', '평단가', '보유수량', '현재가', '평가금액', '수익금', '수익률']
 st.subheader("✅ 보유 자산 현황")
-st.dataframe(df.style.format({'수익률': '{:.2f}%', '평가금액': '{:,.0f}원'}), width="stretch")
+# 2. 데이터프레임 출력
+st.dataframe(
+    df.style.format({
+        '평단가': '{:,.0f}',
+        '현재가': '{:,.0f}',
+        '평가금액': '{:,.0f}',
+        '수익금': '{:,.0f}',
+        '수익률': '{:.2f}%'
+    }), 
+    column_order=display_columns,  # 이 리스트에 포함된 컬럼만 순서대로 보여줍니다.
+    width="stretch",
+    hide_index=True  # 왼쪽의 인덱스 번호(0, 1, 2...)도 숨기면 더 깔끔합니다.
+)
 
 # 5. 제미나이 AI 분석 섹션
 st.divider()
