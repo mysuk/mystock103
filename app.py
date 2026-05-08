@@ -190,17 +190,13 @@ if selected_stock != '선택':
     
         ※ 모든 분석은 한국어로, 격조 있고 전문적인 투자 보고서 형식으로 출력해줘.
         """
-        st.write(prompt)
-        # with st.spinner(f'제미나이가 {selected_stock}의 실시간 시장 데이터를 분석 중입니다...'):
-        #     response = model.generate_content(prompt)
-        #     st.markdown(f"### 🚩 {selected_stock} AI 종합 분석 보고서")
-        #     st.write(response.text)
-        #     # --- 개발자용 비밀 확인 섹션 ---
-        #     st.divider()
-        #     # 분석 결과 출력 후 마지막에 배치
-        #     st.popover("Prompt Debug").code(prompt)
-    
-    # with st.spinner('제미나이가 분석 중입니다...'):
-    #     response = model.generate_content(prompt)
-    #     st.markdown(f"### 🚩 {selected_stock} 분석 결과")
-    #     st.write(response.text)
+        # st.write(prompt)
+        with st.spinner(f'제미나이가 {selected_stock}의 실시간 시장 데이터를 분석 중입니다...'):
+            response = model.generate_content(prompt)
+            st.markdown(f"### 🚩 {selected_stock} AI 종합 분석 보고서")
+            st.write(response.text)
+            # --- 개발자용 비밀 확인 섹션 ---
+            st.divider()
+            # 분석 결과 출력 후 마지막에 배치
+            st.popover("Prompt Debug").code(prompt)
+
