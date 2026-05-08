@@ -14,7 +14,7 @@ genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 try:
     # 1. 모델명 앞에 'models/'를 붙여 경로를 명시합니다.
-    model = genai.GenerativeModel(model_name='models/gemini-2.5-flash')
+    model = genai.GenerativeModel(model_name='models/gemini-2.5-pro')
     
     # 2. 모델이 정상적으로 생성되었는지 간단한 테스트를 진행합니다. (선택 사항)
     # response = model.generate_content("test") 
@@ -141,11 +141,11 @@ if st.button(f"{selected_stock} 분석 시작"):
 
     ※ 모든 분석은 한국어로, 격조 있고 전문적인 투자 보고서 형식으로 출력해줘.
     """
-    st.write(prompt)
-    # with st.spinner(f'제미나이가 {selected_stock}의 실시간 시장 데이터를 분석 중입니다...'):
-    #     response = model.generate_content(prompt)
-    #     st.markdown(f"### 🚩 {selected_stock} AI 종합 분석 보고서")
-    #     st.write(response.text)
+    # st.write(prompt)
+    with st.spinner(f'제미나이가 {selected_stock}의 실시간 시장 데이터를 분석 중입니다...'):
+        response = model.generate_content(prompt)
+        st.markdown(f"### 🚩 {selected_stock} AI 종합 분석 보고서")
+        st.write(response.text)
     
     # with st.spinner('제미나이가 분석 중입니다...'):
     #     response = model.generate_content(prompt)
