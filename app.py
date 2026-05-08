@@ -137,6 +137,11 @@ if selected_stock != '선택':
         ratio = stock_info['수익률']
         ticker = stock_info['Ticker']
         category = stock_info['구분']
+
+        # 2. 화폐 단위 결정 (미국 주식 판단)
+        # 한국 주식(.KS, .KQ)이 아니고, 가상화폐도 아닌 경우 미국 주식으로 간주
+        is_us_stock = (category == '주식') and not (ticker.endswith('.KS') or ticker.endswith('.KQ'))
+        unit = "$" if is_us_stock else "원"
         
         # 지수 정보를 먼저 가져옵니다 (함수 호출)
         market_indices = get_market_indices()
@@ -152,9 +157,9 @@ if selected_stock != '선택':
     
         ### [1. 나의 투자 현황]
         - 종목 구분: {category}
-        - 나의 평균 단가: {buy_price:,.0f}원
-        - 현재 시장 가격: {curr_price:,.0f}원
-        - 현재 평가 손익: {profit_loss:,.0f}원 ({ratio:.2f}%)
+        - 나의 평균 단가: {buy_price:,.0f}{unit}
+        - 현재 시장 가격: {curr_price:,.0f}{unit}
+        - 현재 평가 손익: {profit_loss:,.0f}{unit} ({ratio:.2f}%)
         - 나의 투자 원칙: 최대 손실 허용 범위 5%, 목표 수익 달성 시 익절 고민 중.
     
         ### [2. 분석 요청 데이터 (직접 검색 및 추론 포함)]
