@@ -147,9 +147,9 @@ with col1:
         hide_index=True,
         # 각 컬럼의 폭을 '최소'로 유지하도록 설정
         column_config={
-            "종목명": st.column_config.TextColumn(width="medium"),
+            "종목명": st.column_config.TextColumn(width="small"),
             "평단가": st.column_config.NumberColumn(width="medium"),
-            "보유수량": st.column_config.NumberColumn(width="small"),
+            "보유수량": st.column_config.NumberColumn(width="medium"),
             "현재가": st.column_config.NumberColumn(width="medium"),
             "평가금액": st.column_config.NumberColumn(width="medium"),
             "수익금": st.column_config.NumberColumn(width="medium"),
