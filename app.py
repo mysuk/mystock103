@@ -5,6 +5,7 @@ import pandas as pd
 import yfinance as yf
 import pyupbit
 from datetime import datetime
+import plotly.express as px
 
 # 1. 환경 설정 및 세팅
 st.set_page_config(page_title="My Investment Terminal", layout="wide")
@@ -14,10 +15,10 @@ st.title("📊 주식/가상화폐 수익률 & AI 대응 전략")
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 try:
-    # 1. 모델명 앞에 'models/'를 붙여 경로를 명시합니다.
+    # 1.1. 모델명 앞에 'models/'를 붙여 경로를 명시합니다.
     model = genai.GenerativeModel(model_name='models/gemini-2.5-flash')
     
-    # 2. 모델이 정상적으로 생성되었는지 간단한 테스트를 진행합니다. (선택 사항)
+    # 1.2. 모델이 정상적으로 생성되었는지 간단한 테스트를 진행합니다. (선택 사항)
     # response = model.generate_content("test") 
 except Exception as e:
     st.error(f"모델 초기화 중 오류 발생: {e}")
@@ -38,7 +39,7 @@ def load_data():
     # 시트 이름이 'Sheet1'인 경우 예시
     return conn.read()
 
-# 실시간 가격 가져오기 함수
+# 3. 실시간 가격 가져오기 함수
 def get_current_price(ticker, category):
     try:
         if category == '주식':
@@ -51,7 +52,7 @@ def get_current_price(ticker, category):
             return pyupbit.get_current_price(ticker)
     except Exception as e:
         return 0
-# 지수가져오기        
+# 4. 지수가져오기        
 def get_market_indices():
     indices = {"코스피": "^KS11", "코스닥": "^KQ11"}
     market_data = {}
@@ -92,7 +93,7 @@ with st.spinner('실시간 시세를 가져오는 중...'):
     # 시트의 'Ticker'와 '구분'(주식/가상화폐) 컬럼을 활용
     df['현재가'] = df.apply(lambda x: get_current_price(x['Ticker'], x['구분']), axis=1)
     
-# 3. 수익률 계산 로직
+# 5. 수익률 계산 로직
 # 데이터를 불러온 직후 형 변환 로직 추가
 df['평단가'] = pd.to_numeric(df['평단가'], errors='coerce')
 df['보유수량'] = pd.to_numeric(df['보유수량'], errors='coerce')
@@ -110,32 +111,59 @@ df['매수금액'] = df['평단가'] * df['보유수량']
 df['수익금'] = df['평가금액'] - df['매수금액']
 df['수익률'] = (df['수익금'] / df['매수금액'] * 100).fillna(0)
 
-# 4. 화면 구성: 포트폴리오 요약
-# 4.1. 화면에 보여줄 컬럼 순서 정의 (Ticker 제외)
-display_columns = ['종목명', '평단가', '보유수량', '현재가', '평가금액', '수익금', '수익률']
-st.subheader("✅ 보유 자산 현황")
-# 2. 데이터프레임 출력
-st.dataframe(
-    df.style.format({
-        '평단가': '{:,.0f}',
-        '현재가': '{:,.0f}',
-        '평가금액': '{:,.0f}',
-        '수익금': '{:,.0f}',
-        '수익률': '{:.2f}%'
-    }), 
-    column_order=display_columns,  # 이 리스트에 포함된 컬럼만 순서대로 보여줍니다.
-    width="stretch",
-    hide_index=True  # 왼쪽의 인덱스 번호(0, 1, 2...)도 숨기면 더 깔끔합니다.
-)
+# 6. 화면 구성: 포트폴리오 요약
 
-# 5. 제미나이 AI 분석 섹션
+# 화면 레이아웃 나누기 (표 7 : 차트 3 비율)
+col1, col2 = st.columns([7, 3])
+# 6.1. 데이터프레임 출력
+with col1:    
+    st.subheader("✅ 보유 자산 현황")
+    #화면에 보여줄 컬럼 순서 정의 (Ticker 제외)
+    display_columns = ['종목명', '평단가', '보유수량', '현재가', '평가금액', '수익금', '수익률']
+    st.dataframe(
+        df.style.format({
+            '평단가': '{:,.0f}',
+            '현재가': '{:,.0f}',
+            '평가금액': '{:,.0f}',
+            '수익금': '{:,.0f}',
+            '수익률': '{:.2f}%'
+        }), 
+        column_order=display_columns,  # 이 리스트에 포함된 컬럼만 순서대로 보여줍니다.
+        width="stretch",
+        hide_index=True  # 왼쪽의 인덱스 번호(0, 1, 2...)도 숨기면 더 깔끔합니다.
+    )
+with col2:
+    st.subheader("💰 자산 보유 비중")
+    # 평가금액이 0보다 큰 종목들만 대상으로 비중 계산
+    pie_df = df[df['평가금액'] > 0]
+    
+    if not pie_df.empty:
+        fig = px.pie(
+            pie_df, 
+            values='평가금액', 
+            names='종목명', 
+            hole=0.4, # 도넛 모양으로 만들어 더 세련되게 표시
+            color_discrete_sequence=px.colors.qualitative.Pastel
+        )
+        # 차트 레이아웃 조정 (여백 줄이기)
+        fig.update_layout(
+            margin=dict(l=20, r=20, t=20, b=20),
+            showlegend=True,
+            legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("비중을 계산할 자산 데이터가 없습니다.")
+
+
+# 7. 제미나이 AI 분석 섹션
 st.divider()
 st.subheader("🤖 제미나이 AI 종목 진단")
 
 # 프롬프트 구성 부분 수정
-# 1. 셀렉트박스 목록 설정 (맨 앞에 '선택' 추가)
+# 8. 셀렉트박스 목록 설정 (맨 앞에 '선택' 추가)
 options = ['선택'] + list(df['종목명'].unique())
-# 2. 셀렉트박스 생성
+# 9. 셀렉트박스 생성
 selected_stock = st.selectbox("진단할 종목을 선택하세요", options)
 if selected_stock != '선택':
     if st.button(f"{selected_stock} 분석 시작"):
