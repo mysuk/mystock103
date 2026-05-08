@@ -91,59 +91,63 @@ st.subheader("🤖 제미나이 AI 종목 진단")
 selected_stock = st.selectbox("진단할 종목을 선택하세요", df['종목명'].unique())
 
 if st.button(f"{selected_stock} 분석 시작"):
-    # 선택된 종목의 데이터 추출
+    # 1. 선택된 종목의 데이터 추출
     stock_info = df[df['종목명'] == selected_stock].iloc[0]
     
-    # AI에게 보낼 프롬프트 구성
+    # 2. 분석을 위한 주요 지표 변수화
+    buy_price = stock_info['평단가']
+    curr_price = stock_info['현재가']
+    profit_loss = stock_info['수익금']
+    ratio = stock_info['수익률']
+    ticker = stock_info['Ticker']
+    category = stock_info['구분']
+
+    # 3. 고도화된 프롬프트 작성
     prompt = f"""
-    너는 전문 투자 전략가야. 아래 정보를 바탕으로 {stock_info['구분']} 종목인 '{selected_stock}'에 대해 분석해줘.
-    
-    - 현재 나의 평단가: {stock_info['평단가']}
-    - 현재 시장 가격: {stock_info['현재가']}
-    - 현재 나의 수익률: {stock_info['수익률']:.2f}%
-    
-    【주식 분석 의뢰】
+    너는 20년 경력의 월스트리트 출신 투자 전략가야. 
+    아래 제공된 나의 실제 포트폴리오 데이터와 네가 실시간으로 파악할 수 있는 시장 정보를 결합해서 
+    '{selected_stock}({ticker})' 종목에 대한 심층 진단 보고서를 작성해줘.
 
-    【시장 환경】
-    KOSPI: X포인트 (상승중)
-    기준금리: X% (인상 진행 중)
-    USD/KRW: X원 (약원 추세)
-    시장심리: 중립~약세
-    
-    【기업 정보】
-    현재가:
-    PER: X배 (역사 평균 X배)
-    ROE: X% (산업 평균 X%)
-    부채비율: X%
-    최근 분기 실적: +X% 성장
-    
-    【기술적 분석】
-    200일선:
-    RSI: X (정상)
-    52주: XX ~XX원
-    
-    【현황】
-    나의 매수가: x원
-    현재 수익률: x% (+x원)
-    보유 기간: x개월
-    심리: 
-    
-    【투자 목표】
-    목표: 
-    최대손실: 5%
-    현재 의문점: "지금 익절해야 하나? 계속 홀드해도 되나?"
-    
-    【요청】
-    1. 최근 시장 트렌드 분석
-    2. 현재 +7.7% 수익 상태에서의 심리 조언과 
-       익절/물타기/홀딩 중 어떤 선택이 최선인가?
-    3. 향후 3개월 긍정/부정 시나리오
-    4. 지지선/저항선과 손절 수준
-    5. 최종 추천 액션
+    ### [1. 나의 투자 현황]
+    - 종목 구분: {category}
+    - 나의 평균 단가: {buy_price:,.0f}원
+    - 현재 시장 가격: {curr_price:,.0f}원
+    - 현재 평가 손익: {profit_loss:,.0f}원 ({ratio:.2f}%)
+    - 나의 투자 원칙: 최대 손실 허용 범위 5%, 목표 수익 달성 시 익절 고민 중.
 
+    ### [2. 분석 요청 데이터 (직접 검색 및 추론 포함)]
+    아래 항목들을 네가 알고 있는 최신 시장 데이터(최근 1달 기준)를 바탕으로 채워서 분석해줘.
+
+    #### 【시장 환경】
+    - KOSPI/KOSDAQ 지수 현황 및 주요 금리/환율 추세
+    - 현재 시장의 전반적인 투자 심리 (탐욕/공포 지수 등)
+
+    #### 【기업/자산 정보】
+    - {selected_stock}의 최근 재무 지표 (PER, ROE, 부채비율 등 추정치)
+    - 최근 분기 실적 및 향후 성장성 전망
+
+    #### 【기술적 분석】
+    - 200일 이동평균선 대비 현재가 위치 및 RSI 지수 추정
+    - 최근 52주 신고가/신저가 범위 내 현재 위치
+
+    ### [3. 핵심 질문 및 가이드라인]
+    1. **현재 나의 의문:** "지금 수익권(혹은 손실권)인데 익절해야 할까? 아니면 손절인가? 혹은 홀딩인가?" 이에 대해 명확한 논리로 답해줘.
+    2. **대응 전략:** 현재 {ratio:.2f}% 수익 상태에서의 심리적 조언과 함께 '추가 매수/홀딩/분할 익절/전량 매도' 중 최선의 액션을 추천해줘.
+    3. **시나리오 분석:** 향후 3개월 내 발생 가능한 긍정/부정 시나리오와 각각의 대응 가격대를 설정해줘.
+    4. **기술적 가이드:** 구체적인 지지선, 저항선, 그리고 반드시 지켜야 할 '최종 손절 가격'을 제시해줘.
+
+    ### [4. 최종 권고 사항]
+    - 마지막에 결론으로 '한 줄 요약 액션 플랜'을 작성해줘.
+
+    ※ 모든 분석은 한국어로, 격조 있고 전문적인 투자 보고서 형식으로 출력해줘.
     """
+    st.write(prompt)
+    # with st.spinner(f'제미나이가 {selected_stock}의 실시간 시장 데이터를 분석 중입니다...'):
+    #     response = model.generate_content(prompt)
+    #     st.markdown(f"### 🚩 {selected_stock} AI 종합 분석 보고서")
+    #     st.write(response.text)
     
-    with st.spinner('제미나이가 분석 중입니다...'):
-        response = model.generate_content(prompt)
-        st.markdown(f"### 🚩 {selected_stock} 분석 결과")
-        st.write(response.text)
+    # with st.spinner('제미나이가 분석 중입니다...'):
+    #     response = model.generate_content(prompt)
+    #     st.markdown(f"### 🚩 {selected_stock} 분석 결과")
+    #     st.write(response.text)
