@@ -81,7 +81,19 @@ def get_market_indices():
             # 에러 로그를 살짝 남겨두면 나중에 디버깅하기 좋습니다.
             market_data[name] = f"연결 지연 (다시 시도)"
     return market_data
-    
+# 환율 가져오기.
+def get_usd_krw():
+    try:
+        # 원/달러 환율 티커는 'USDKRW=X'입니다.
+        ticker = yf.Ticker("USDKRW=X")
+        current_rate = ticker.history(period="1d")['Close'].iloc[-1]
+        return current_rate
+    except:
+        return 1350.0  # 연결 오류 시 임시로 사용할 기본 환율
+ 
+########### 함수 정의 끝 #####################       
+
+
 df = load_data()
 df.columns = df.columns.str.strip()
 
@@ -134,26 +146,42 @@ with col1:
     )
 with col2:
     st.subheader("💰 자산 보유 비중")
-    # 평가금액이 0보다 큰 종목들만 대상으로 비중 계산
-    pie_df = df[df['평가금액'] > 0]
     
-    if not pie_df.empty:
+    # 1. 현재 환율 가져오기
+    usd_rate = get_usd_krw()
+    
+    # 2. 비중 계산용 임시 데이터프레임 생성
+    pie_df = df.copy()
+    
+    # 3. 미국 주식(달러)을 원화로 환산 (종목 구분과 Ticker로 판단)
+    # 한국 주식이 아닌 경우(미국 주식 등) 환율을 곱해줍니다.
+    def convert_to_krw(row):
+        if row['구분'] == '주식' and not (row['Ticker'].endswith('.KS') or row['Ticker'].endswith('.KQ')):
+            return row['평가금액'] * usd_rate
+        return row['평가금액']
+
+    pie_df['평가금액_원화'] = pie_df.apply(convert_to_krw, axis=1)
+    
+    # 4. 차트 그리기
+    if not pie_df[pie_df['평가금액_원화'] > 0].empty:
         fig = px.pie(
-            pie_df, 
-            values='평가금액', 
+            pie_df[pie_df['평가금액_원화'] > 0], 
+            values='평가금액_원화', 
             names='종목명', 
-            hole=0.4, # 도넛 모양으로 만들어 더 세련되게 표시
+            hole=0.4,
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
-        # 차트 레이아웃 조정 (여백 줄이기)
         fig.update_layout(
-            margin=dict(l=20, r=20, t=20, b=20),
+            margin=dict(l=10, r=10, t=10, b=10),
             showlegend=True,
-            legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
+            legend=dict(orientation="h", y=-0.1)
         )
         st.plotly_chart(fig, use_container_width=True)
+        
+        # 5. 그래프 우측 하단에 환율 표시 (캡션 활용)
+        st.caption(f"📢 현재 적용 환율: 1$ = {usd_rate:,.2f}원 (실시간 기준)")
     else:
-        st.info("비중을 계산할 자산 데이터가 없습니다.")
+        st.info("비중을 계산할 데이터가 없습니다.")
 
 
 # 7. 제미나이 AI 분석 섹션
