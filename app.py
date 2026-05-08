@@ -14,7 +14,7 @@ genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 try:
     # 1. 모델명 앞에 'models/'를 붙여 경로를 명시합니다.
-    model = genai.GenerativeModel(model_name='models/gemini-2.5-pro')
+    model = genai.GenerativeModel(model_name='models/gemini-2.5-flash')
     
     # 2. 모델이 정상적으로 생성되었는지 간단한 테스트를 진행합니다. (선택 사항)
     # response = model.generate_content("test") 
